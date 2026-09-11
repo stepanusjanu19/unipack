@@ -1,0 +1,50 @@
+name: {{ .Name }}
+version: "{{ .Version }}"
+release: "{{ .Release }}"
+{{- if .Epoch }}
+epoch: {{ .Epoch }}
+{{- end }}
+arch: {{ .Arch }}
+platform: linux
+maintainer: "{{ .Maintainer }}"
+description: |
+  {{ .Description }}
+homepage: "{{ .Homepage }}"
+license: {{ .License }}
+
+contents:
+{{- range .Contents }}
+  - src: {{ .Src }}
+    dst: {{ .Dst }}
+    {{- if .Type }}
+    type: {{ .Type }}
+    {{- end }}
+{{- end }}
+
+{{- if or .PreInstall .PostInstall .PreRemove .PostRemove }}
+scripts:
+  {{- if .PreInstall }}
+  preinstall: {{ .PreInstall }}
+  {{- end }}
+  {{- if .PostInstall }}
+  postinstall: {{ .PostInstall }}
+  {{- end }}
+  {{- if .PreRemove }}
+  preremove: {{ .PreRemove }}
+  {{- end }}
+  {{- if .PostRemove }}
+  postremove: {{ .PostRemove }}
+  {{- end }}
+{{- end }}
+
+{{- if .Depends }}
+depends:
+{{- range .Depends }}
+  - {{ . }}
+{{- end }}
+{{- end }}
+
+{{- if .Overrides }}
+overrides:
+{{ .Overrides }}
+{{- end }}

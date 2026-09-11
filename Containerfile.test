@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1: build unipack binary
+# ─────────────────────────────────────────────────────────────────────────────
+FROM golang:1.21-bullseye AS builder
+WORKDIR /src
+COPY go.mod .
+COPY cmd/ cmd/
+COPY internal/ internal/
+COPY data/ data/
+RUN go build -o /usr/local/bin/unipack ./cmd/unipack
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2: test-deb — Debian Bookworm
+# nFPM build .deb, FPM build .deb, Alien konversi .deb → .rpm
+# ─────────────────────────────────────────────────────────────────────────────
+FROM debian:bookworm-slim AS test-deb
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    rpm \
+    alien \
+    ruby \
+    ruby-dev \
+    build-essential \
+    dpkg \
+    && gem install --no-document fpm \
+    && curl -fsSL \
+       https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_Linux_x86_64.tar.gz \
+       | tar -xz -C /usr/local/bin nfpm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/local/bin/unipack /usr/local/bin/unipack
+COPY testdata/ /testdata/
+COPY tests/integration.sh /tests/integration.sh
+RUN chmod +x /tests/integration.sh /testdata/hello-unipack
+
+CMD ["/tests/integration.sh", "deb"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 3: test-rpm — Fedora 40
+# nFPM build .rpm, FPM build .rpm, Alien (via EPEL) konversi .rpm → .deb
+# ─────────────────────────────────────────────────────────────────────────────
+FROM fedora:40 AS test-rpm
+
+RUN dnf install -y \
+    curl \
+    rpm-build \
+    dpkg \
+    alien \
+    ruby \
+    ruby-devel \
+    gcc \
+    make \
+    redhat-rpm-config \
+    && gem install --no-document fpm \
+    && curl -fsSL \
+       https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_Linux_x86_64.tar.gz \
+       | tar -xz -C /usr/local/bin nfpm \
+    && dnf clean all
+
+COPY --from=builder /usr/local/bin/unipack /usr/local/bin/unipack
+COPY testdata/ /testdata/
+COPY tests/integration.sh /tests/integration.sh
+RUN chmod +x /tests/integration.sh /testdata/hello-unipack
+
+CMD ["/tests/integration.sh", "rpm"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 4: test-setup — Debian bersih, verifikasi `unipack setup` auto-install
+# ─────────────────────────────────────────────────────────────────────────────
+FROM debian:bookworm-slim AS test-setup
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Hanya install sudo + curl + ca-certificates (prasyarat minimal untuk setup)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    sudo \
+    curl \
+    ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/local/bin/unipack /usr/local/bin/unipack
+
+# Jalankan unipack setup (akan install nfpm, ruby, fpm, alien otomatis)
+RUN unipack setup
+
+# Verifikasi semua tool tersedia setelah setup
+RUN command -v nfpm && command -v fpm && command -v alien && echo "SETUP OK"

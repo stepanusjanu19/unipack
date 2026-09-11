@@ -1,0 +1,152 @@
+# UniScript — Universal Package Build Script
+# Gabungan format Pacscript (Pacstall) + nFPM
+# Referensi: packagemanager/.opencode/PLAN.md
+#
+# Build:   unipack build <script.uniscript> [--format deb|rpm|apk|archlinux]
+# Init:    unipack init --name mypkg
+
+# ============================================================
+# METADATA
+# ============================================================
+pkgname="{{PKGNAME}}"
+pkgbase=""                          # hanya untuk split packages
+pkgver="1.0.0"
+pkgrel="1"
+epoch=""                            # paksa versi lebih baru dari sebelumnya
+pkgdesc="Deskripsi singkat satu baris"
+url="https://example.com"
+bugs="https://example.com/issues"
+license=("MIT")
+maintainer=("Nama <email@example.com>")
+arch=("amd64" "arm64")             # atau: ("any")
+repology=("project: {{PKGNAME}}") # untuk pacup version tracking
+
+# ============================================================
+# SOURCE & CHECKSUM
+# ============================================================
+source=(
+  "https://github.com/example/{{PKGNAME}}/archive/refs/tags/${pkgver}.tar.gz"
+  # "https://example.com/config.desktop"
+)
+# Gunakan SKIP untuk melewati verifikasi checksum
+sha256sums=(
+  "SKIP"
+  # "abc123..."
+)
+# sha512sums=()
+# b2sums=()
+# md5sums=()
+
+# noextract=("file-yang-tidak-perlu-di-extract.zip")
+# nosubmodules=("repo-tanpa-submodule")
+
+# ============================================================
+# DEPENDENSI
+# Nama generik — akan di-resolve ke nama per distro
+# (openssl → libssl-dev/openssl-devel/openssl/openssl-dev)
+# ============================================================
+depends=("openssl" "zlib")
+makedepends=("gcc" "make" "cmake")
+checkdepends=()
+optdepends=(
+  "bar: fitur opsional X"
+  # "alacritty: terminal alternatif"
+)
+pacdeps=()                          # dependency dari Pacstall repo
+
+# ============================================================
+# RELASI PAKET
+# ============================================================
+conflicts=()                        # tidak bisa install bersamaan
+breaks=()                           # paket yang rusak jika ini diinstall
+replaces=()                         # gantikan paket lain
+provides=("{{PKGNAME}}")            # sediakan virtual package
+gives=""                            # override nama output package
+
+# ============================================================
+# KOMPATIBILITAS DISTRO
+# Format: "distroID:versiATAUcodename" atau "*:codename"
+# ============================================================
+compatible=()
+# compatible=("*:jammy" "*:noble" "fedora:40")
+incompatible=()
+# incompatible=("debian:stretch" "*:18.04")
+
+# ============================================================
+# INSTALASI & LIFECYCLE SCRIPTS (nFPM style)
+# ============================================================
+# Untuk binary yang sudah ada (tanpa build functions):
+# Definisikan di sini — akan dimasukkan ke nfpm.yaml
+#
+# contents:
+#   - src: ./build/bin/{{PKGNAME}}
+#     dst: /usr/bin/{{PKGNAME}}
+#   - src: ./config/{{PKGNAME}}.conf
+#     dst: /etc/{{PKGNAME}}/{{PKGNAME}}.conf
+#     type: config|noreplace
+#   - src: ./man/{{PKGNAME}}.1
+#     dst: /usr/share/man/man1/{{PKGNAME}}.1
+#
+# scripts:
+#   preinstall: ./scripts/preinstall.sh
+#   postinstall: ./scripts/postinstall.sh
+#   preremove: ./scripts/preremove.sh
+#   postremove: ./scripts/postremove.sh
+
+# File config yang di-preserve saat upgrade (dpkg conffile)
+backup=()
+# backup=('etc/{{PKGNAME}}/{{PKGNAME}}.conf')
+
+priority=""                         # essential, required, important, standard, optional
+mask=()                             # cegah apt install paket nama sama
+
+# Per-format dependency override (jika nama berbeda signifikan antar distro)
+# overrides:
+#   deb:
+#     depends:
+#       - libssl-dev (>= 1.1.0)
+#   rpm:
+#     depends:
+#       - openssl-devel >= 1.1.0
+#   archlinux:
+#     depends:
+#       - openssl
+
+# external_connection=false         # izinkan akses internet saat build
+
+# ============================================================
+# BUILD FUNCTIONS (Pacscript / PKGBUILD style)
+# Hapus fungsi yang tidak diperlukan
+# ============================================================
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+  # Pre-build: generate configure script, patch, dll
+  # ./autogen.sh
+  # ./configure --prefix=/usr --sysconfdir=/etc
+}
+
+build() {
+  cd "${pkgname}-${pkgver}"
+  # Kompilasi. Gunakan ${NCPU} sebagai pengganti $(nproc)
+  make -j"${NCPU}"
+  # atau: cmake --build . --parallel ${NCPU}
+}
+
+check() {
+  cd "${pkgname}-${pkgver}"
+  # Jalankan test suite. Hapus fungsi ini jika tidak ada test.
+  # make test
+  # make check
+}
+
+package() {
+  cd "${pkgname}-${pkgver}"
+  # Install ke ${pkgdir} (DESTDIR)
+  make install DESTDIR="${pkgdir}"
+
+  # Untuk binary pre-built (tanpa Makefile):
+  # install -Dm755 "${pkgname}" -t "${pkgdir}/usr/bin"
+  # install -Dm644 "config.conf" "${pkgdir}/etc/${pkgname}/${pkgname}.conf"
+  # install -Dm644 "man/${pkgname}.1" "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+}

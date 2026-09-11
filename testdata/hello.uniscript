@@ -1,0 +1,10 @@
+pkgname="hello-unipack"
+pkgver="1.0.0"
+pkgrel="1"
+pkgdesc="Hello World test package for unipack cross-combine test"
+url="https://example.com"
+bugs="https://example.com/issues"
+license=("MIT")
+maintainer=("Unipack Test <test@example.com>")
+arch=("amd64")
+depends=("curl")

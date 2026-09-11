@@ -15,11 +15,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/unipack/unipack/internal/builder"
-	"github.com/unipack/unipack/internal/converter"
-	"github.com/unipack/unipack/internal/detector"
-	"github.com/unipack/unipack/internal/resolver"
-	"github.com/unipack/unipack/internal/setup"
+	"github.com/stepanusjanu19/unipack/internal/builder"
+	"github.com/stepanusjanu19/unipack/internal/converter"
+	"github.com/stepanusjanu19/unipack/internal/detector"
+	"github.com/stepanusjanu19/unipack/internal/resolver"
+	"github.com/stepanusjanu19/unipack/internal/setup"
 )
 
 const version = "0.1.0"

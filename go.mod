@@ -1,4 +1,4 @@
-module github.com/unipack/unipack
+module github.com/stepanusjanu19/unipack
 
 go 1.21
 

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/unipack/unipack/internal/resolver"
+	"github.com/stepanusjanu19/unipack/internal/resolver"
 )
 
 // FPMBuilder membungkus FPM CLI.

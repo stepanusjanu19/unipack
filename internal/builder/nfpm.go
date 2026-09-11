@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/unipack/unipack/internal/resolver"
+	"github.com/stepanusjanu19/unipack/internal/resolver"
 )
 
 // NFPMBuilder membungkus nFPM CLI.

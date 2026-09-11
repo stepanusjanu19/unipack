@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/unipack/unipack/internal/resolver"
+	"github.com/stepanusjanu19/unipack/internal/resolver"
 )
 
 // PacstallBuilder menjalankan build pipeline source-based.

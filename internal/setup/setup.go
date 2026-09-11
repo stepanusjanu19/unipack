@@ -12,7 +12,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/unipack/unipack/internal/detector"
+	"github.com/stepanusjanu19/unipack/internal/detector"
 )
 
 // NFPMVersion adalah versi nFPM yang akan diunduh.
